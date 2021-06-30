@@ -6,21 +6,46 @@ import {
   addOnlineUser,
 } from "./store/conversations";
 
-const socket = io(window.location.origin);
+export const socketWrapper = {
+  socket: null
 
-socket.on("connect", () => {
-  console.log("connected to server");
+}
 
-  socket.on("add-online-user", (id) => {
-    store.dispatch(addOnlineUser(id));
-  });
+const initialSocket = user => {
+   if(user) {
+    socketWrapper.socket = io(process.env.REACT_APP_SERVER);
 
-  socket.on("remove-offline-user", (id) => {
-    store.dispatch(removeOfflineUser(id));
-  });
-  socket.on("new-message", (data) => {
-    store.dispatch(setNewMessage(data.message, data.sender));
-  });
-});
+    socketWrapper.socket.on('connection', () => {
 
-export default socket;
+      socketWrapper.socket.on("add-online-user", (id) => {
+        store.dispatch(addOnlineUser(id));
+      });
+      socketWrapper.socket.on("remove-offline-user", (id) => {
+        store.dispatch(removeOfflineUser(id));
+      });
+      socketWrapper.socket.on("new-message", (data) => {
+        store.dispatch(setNewMessage(data.message, data.sender));
+      });
+
+    });
+    //error handling...
+    socketWrapper.socket.on('connect_error', () => {
+      console.error('Cannot connect to the server socketWrapper.socket');
+      socketWrapper.socket.disconnect();
+    });
+
+    socketWrapper.socket.on('connect_failed', () => {
+      console.error('Cannot connect to the server socketWrapper.socket');
+      socketWrapper.socket.disconnect();
+    });
+
+    socketWrapper.socket.on('disconnect', () => {
+      console.error('socketWrapper.socket connection closed by server');
+      socketWrapper.socket.disconnect();
+    });
+  }
+}
+
+export default initialSocket;
+
+

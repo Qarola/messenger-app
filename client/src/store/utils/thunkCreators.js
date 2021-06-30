@@ -1,5 +1,5 @@
 import axios from "axios";
-import socket from "../../socket";
+import initialSocket, {socketWrapper} from "../../socket.js";
 import {
   gotConversations,
   addConversation,
@@ -7,13 +7,6 @@ import {
   setSearchedUsers,
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
-
-axios.interceptors.request.use(async function (config) {
-  const token = await localStorage.getItem("messenger-token");
-  config.headers["x-access-token"] = token;
-
-  return config;
-});
 
 // USER THUNK CREATORS
 
@@ -23,7 +16,10 @@ export const fetchUser = () => async (dispatch) => {
     const { data } = await axios.get("/auth/user");
     dispatch(gotUser(data));
     if (data.id) {
-      socket.emit("go-online", data.id);
+      if (!socketWrapper.socket) {
+        initialSocket(data.id);
+      }
+      socketWrapper.socket.emit("go-online", data.id);
     }
   } catch (error) {
     console.error(error);
@@ -35,9 +31,11 @@ export const fetchUser = () => async (dispatch) => {
 export const register = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/register", credentials);
-    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
-    socket.emit("go-online", data.id);
+    if (!socketWrapper.socket) {
+      initialSocket(data.id);
+    }
+    socketWrapper.socket.emit("go-online", data.id);
   } catch (error) {
     console.error(error);
     dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
@@ -47,9 +45,11 @@ export const register = (credentials) => async (dispatch) => {
 export const login = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/login", credentials);
-    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
-    socket.emit("go-online", data.id);
+    if (!socketWrapper.socket) {
+      initialSocket(data.id);
+    }
+    socketWrapper.socket.emit("go-online", data.id);
   } catch (error) {
     console.error(error);
     dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
@@ -59,9 +59,11 @@ export const login = (credentials) => async (dispatch) => {
 export const logout = (id) => async (dispatch) => {
   try {
     await axios.delete("/auth/logout");
-    await localStorage.removeItem("messenger-token");
     dispatch(gotUser({}));
-    socket.emit("logout", id);
+    socketWrapper.socket.emit("logout", id, () => {
+      socketWrapper.socket.disconnect();
+    });
+    window.location.reload();
   } catch (error) {
     console.error(error);
   }
@@ -84,7 +86,7 @@ const saveMessage = async (body) => {
 };
 
 const sendMessage = (data, body) => {
-  socket.emit("new-message", {
+  socketWrapper.socket.emit("new-message", {
     message: data.message,
     recipientId: body.recipientId,
     sender: data.sender,
@@ -116,4 +118,9 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   } catch (error) {
     console.error(error);
   }
+<<<<<<< HEAD
 };
+=======
+};
+
+>>>>>>> e7e50043d73c1367b2f60e6c92239d30a4285e2c
