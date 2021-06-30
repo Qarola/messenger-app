@@ -26,9 +26,11 @@ router.post("/register", async (req, res, next) => {
       process.env.SESSION_SECRET,
       { expiresIn: 86400 }
     );
+    //Cookies are associated with a session and we pass a token...( stores jwt token in an httpOnly cookie)
+    res.cookie("token", token, { httpOnly: true });
+
     res.json({
       ...user.dataValues,
-      token,
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
@@ -64,9 +66,10 @@ router.post("/login", async (req, res, next) => {
         process.env.SESSION_SECRET,
         { expiresIn: 86400 }
       );
+      res.cookie("token", token, { httpOnly: true });
+
       res.json({
         ...user.dataValues,
-        token,
       });
     }
   } catch (error) {
@@ -75,6 +78,7 @@ router.post("/login", async (req, res, next) => {
 });
 
 router.delete("/logout", (req, res, next) => {
+  res.clearCookie("token", { httpOnly: true });
   res.sendStatus(204);
 });
 
@@ -87,3 +91,5 @@ router.get("/user", (req, res, next) => {
 });
 
 module.exports = router;
+
+
