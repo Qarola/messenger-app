@@ -26,6 +26,7 @@ app.use(function (req, res, next) {
   if(!req.cookies) {
     return next();
   }
+
   const token = req.cookies["token"];
   if (token) {
     jwt.verify(token, process.env.SESSION_SECRET, (err, decoded) => {
