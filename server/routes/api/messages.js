@@ -25,7 +25,7 @@ router.post("/", async (req, res, next) => {
         return res.json({ message, sender });
       } 
       // given conversation id doesn't exist
-      return res.status(401).json({ error: "Cannot send message to different user's conversation" });
+      return res.status(403).json({ error: "Cannot send message to different user's conversation" });
     }
     
     if (!conversation) {
