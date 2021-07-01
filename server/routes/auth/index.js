@@ -27,7 +27,12 @@ router.post("/register", async (req, res, next) => {
       { expiresIn: 86400 }
     );
     //Cookies are associated with a session and we pass a token...( stores jwt token in an httpOnly cookie)
-    res.cookie("token", token, { httpOnly: true });
+    res.cookie('token', token, {
+      maxAge: 86400 * 1000, 
+      httpOnly: true,
+      secure: true,
+
+    })
 
     res.json({
       ...user.dataValues,
@@ -67,8 +72,12 @@ router.post("/login", async (req, res, next) => {
         process.env.SESSION_SECRET,
         { expiresIn: 86400 }
       );
-      res.cookie("token", token, { httpOnly: true });
-
+      res.cookie('token', token, {
+        maxAge: 86400 * 1000, 
+        httpOnly: true,
+        secure: true,
+  
+      })
       res.json({
         ...user.dataValues,
       
