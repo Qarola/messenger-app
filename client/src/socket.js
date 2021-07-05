@@ -45,7 +45,5 @@ const initialSocket = user => {
     });
   }
 }
-
 export default initialSocket;
-
 

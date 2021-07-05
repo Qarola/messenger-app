@@ -118,9 +118,4 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
   } catch (error) {
     console.error(error);
   }
-<<<<<<< HEAD
 };
-=======
-};
-
->>>>>>> e7e50043d73c1367b2f60e6c92239d30a4285e2c
