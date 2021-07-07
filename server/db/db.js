@@ -13,17 +13,3 @@ const db = new Sequelize(`postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_N
 
 module.exports = db;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
