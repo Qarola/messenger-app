@@ -11,7 +11,7 @@ router.post("/", async (req, res, next) => {
     const senderId = req.user.id;
     const { recipientId, text, conversationId, sender } = req.body;
 
-  //find a conversation...
+  
     let conversation = await Conversation.findConversation(
       senderId,
       recipientId
@@ -48,8 +48,6 @@ router.post("/", async (req, res, next) => {
     next(error);
   }
 });
-
-
 
 
 module.exports = router;
