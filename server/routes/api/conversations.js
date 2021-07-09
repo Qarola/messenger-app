@@ -62,6 +62,7 @@ router.get("/", async (req, res, next) => {
       }
 
       // set property for online status of the other user
+      //convoJSON.otherUser.online = !!onlineUsers[convoJSON.otherUser.id];
       if (onlineUsers.includes(convoJSON.otherUser.id)) {
         convoJSON.otherUser.online = true;
       } else {
@@ -70,9 +71,12 @@ router.get("/", async (req, res, next) => {
 
       // set properties for notification count and latest message preview
       convoJSON.latestMessageText = convoJSON.messages[0].text;
+      // reverse the order for showing in frontend
+      convoJSON.messages.reverse();
       conversations[i] = convoJSON;
     }
 
+ 
     res.json(conversations);
   } catch (error) {
     next(error);
@@ -80,3 +84,7 @@ router.get("/", async (req, res, next) => {
 });
 
 module.exports = router;
+
+
+
+

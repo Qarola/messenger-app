@@ -1,3 +1,4 @@
+  
 import io from "socket.io-client";
 import store from "./store";
 import {
@@ -6,44 +7,30 @@ import {
   addOnlineUser,
 } from "./store/conversations";
 
-export const socketWrapper = {
-  socket: null
-
+/**
+ * Creates a socket connection and start listening to different
+ * events.
+ * @returns Socket IO instance
+ */
+const socketConnection = () => {
+  const socket = io(window.location.origin);
+  socket.on("connect", () => {
+    console.log("connected to server");
+    
+    socket.on("add-online-user", (id) => {
+      store.dispatch(addOnlineUser(id));
+    });
+    
+    socket.on("remove-offline-user", (id) => {
+      store.dispatch(removeOfflineUser(id));
+    });
+    socket.on("new-message", (data) => {
+      store.dispatch(setNewMessage(data.message, data.sender));
+    });
+  });
+  return socket;
 }
 
-const initialSocket = user => {
-   if(user) {
-    socketWrapper.socket = io(process.env.REACT_APP_SERVER);
+export default socketConnection;
 
-    socketWrapper.socket.on('connection', () => {
-
-      socketWrapper.socket.on("add-online-user", (id) => {
-        store.dispatch(addOnlineUser(id));
-      });
-      socketWrapper.socket.on("remove-offline-user", (id) => {
-        store.dispatch(removeOfflineUser(id));
-      });
-      socketWrapper.socket.on("new-message", (data) => {
-        store.dispatch(setNewMessage(data.message, data.sender));
-      });
-
-    });
-    //error handling...
-    socketWrapper.socket.on('connect_error', () => {
-      console.error('Cannot connect to the server socketWrapper.socket');
-      socketWrapper.socket.disconnect();
-    });
-
-    socketWrapper.socket.on('connect_failed', () => {
-      console.error('Cannot connect to the server socketWrapper.socket');
-      socketWrapper.socket.disconnect();
-    });
-
-    socketWrapper.socket.on('disconnect', () => {
-      console.error('socketWrapper.socket connection closed by server');
-      socketWrapper.socket.disconnect();
-    });
-  }
-}
-export default initialSocket;
 
