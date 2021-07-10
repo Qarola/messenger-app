@@ -11,24 +11,30 @@ router.post("/", async (req, res, next) => {
     const senderId = req.user.id;
     const { recipientId, text, conversationId, sender } = req.body;
 
-    // if we already know conversation id, we can save time and just add it to message and return
-    if (conversationId) {
-      const message = await Message.create({ senderId, text, conversationId });
-      return res.json({ message, sender });
-    }
-    // if we don't have conversation id, find a conversation to make sure it doesn't already exist
+  
     let conversation = await Conversation.findConversation(
       senderId,
       recipientId
     );
 
+    // if we already know conversation id, find the conversion by senderId and recipientId
+    // and make sure conversationId matches. Then add it to message and return
+    if (conversationId) {
+      if(conversation && conversation.id == conversationId) {
+        const message = await Message.create({ senderId, text, conversationId });
+        return res.json({ message, sender });
+      } 
+      // given conversation id doesn't exist
+      return res.status(403).json({ error: "Cannot send message to different user's conversation" });
+    }
+    
     if (!conversation) {
       // create conversation
       conversation = await Conversation.create({
         user1Id: senderId,
         user2Id: recipientId,
       });
-      if (onlineUsers.includes(sender.id)) {
+      if (sender && onlineUsers.includes(sender.id)) {
         sender.online = true;
       }
     }
@@ -37,10 +43,14 @@ router.post("/", async (req, res, next) => {
       text,
       conversationId: conversation.id,
     });
-    res.json({ message, sender });
+    return res.json({ message, sender });
   } catch (error) {
     next(error);
   }
 });
 
+
 module.exports = router;
+
+
+
