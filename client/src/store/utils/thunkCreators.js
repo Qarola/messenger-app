@@ -14,6 +14,7 @@ let socket;
 /**
  * Establishes a socket connection and broad cast
  * go online event with current user id
+ * @param {String} id
  */
 const goOnline = id => {
   socket = socketConnection();

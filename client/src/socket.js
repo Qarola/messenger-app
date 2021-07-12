@@ -1,4 +1,3 @@
-  
 import io from "socket.io-client";
 import store from "./store";
 import {
@@ -31,6 +30,6 @@ const socketConnection = () => {
   return socket;
 }
 
-export default socketConnection;
+export default socketConnection; 
 
 
