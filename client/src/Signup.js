@@ -24,7 +24,7 @@ const Login = (props) => {
     const confirmPassword = event.target.confirmPassword.value;
 
     if (password !== confirmPassword) {
-      setFormErrorMessage({ confirmPassword: "The password must match" });
+      setFormErrorMessage({ confirmPassword: "Passwords must match" });
       return;
     }
 
