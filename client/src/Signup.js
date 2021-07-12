@@ -3,15 +3,15 @@ import { Redirect, useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 import {
   Grid,
+  FormHelperText,
   FormControl,
   TextField,
-  FormHelperText,
   Box,
 } from "@material-ui/core";
 import { register } from "./store/utils/thunkCreators";
 import Layout from "./components/Layout";
 
-const Signup = (props) => {
+const Login = (props) => {
   const history = useHistory();
   const { user, register } = props;
   const [formErrorMessage, setFormErrorMessage] = useState({});
@@ -107,4 +107,4 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Signup);
+export default connect(mapStateToProps, mapDispatchToProps)(Login);
