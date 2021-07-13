@@ -13,3 +13,4 @@ const Message = db.define("message", {
 });
 
 module.exports = Message;
+
