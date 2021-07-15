@@ -1,5 +1,5 @@
 import axios from "axios";
-import socket from "../../socket";
+import socketConnection from "../../socket";
 import {
   gotConversations,
   addConversation,
@@ -8,14 +8,18 @@ import {
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
 
-axios.interceptors.request.use(async function (config) {
-  const token = await localStorage.getItem("messenger-token");
-  config.headers["x-access-token"] = token;
-
-  return config;
-});
-
+let socket;
 // USER THUNK CREATORS
+
+/**
+ * Establishes a socket connection and broad cast
+ * go online event with current user id
+ * @param {String} id
+ */
+const goOnline = id => {
+  socket = socketConnection();
+  socket.emit("go-online", id);
+}
 
 export const fetchUser = () => async (dispatch) => {
   dispatch(setFetchingStatus(true));
@@ -23,7 +27,10 @@ export const fetchUser = () => async (dispatch) => {
     const { data } = await axios.get("/auth/user");
     dispatch(gotUser(data));
     if (data.id) {
-      socket.emit("go-online", data.id);
+      // establish socket connection if not there
+      if(!socket) {
+        goOnline(data.id);
+      }
     }
   } catch (error) {
     console.error(error);
@@ -35,9 +42,9 @@ export const fetchUser = () => async (dispatch) => {
 export const register = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/register", credentials);
-    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
-    socket.emit("go-online", data.id);
+    // establish socket connection on registration and go online
+    goOnline(data.id);
   } catch (error) {
     console.error(error);
     dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
@@ -47,9 +54,9 @@ export const register = (credentials) => async (dispatch) => {
 export const login = (credentials) => async (dispatch) => {
   try {
     const { data } = await axios.post("/auth/login", credentials);
-    await localStorage.setItem("messenger-token", data.token);
     dispatch(gotUser(data));
-    socket.emit("go-online", data.id);
+    // establish socket connection on registration and go online
+    goOnline(data.id);
   } catch (error) {
     console.error(error);
     dispatch(gotUser({ error: error.response.data.error || "Server Error" }));
@@ -59,9 +66,10 @@ export const login = (credentials) => async (dispatch) => {
 export const logout = (id) => async (dispatch) => {
   try {
     await axios.delete("/auth/logout");
-    await localStorage.removeItem("messenger-token");
     dispatch(gotUser({}));
     socket.emit("logout", id);
+    // close socket connection when user logout
+    socket.close();
   } catch (error) {
     console.error(error);
   }
@@ -84,6 +92,8 @@ const saveMessage = async (body) => {
 };
 
 const sendMessage = (data, body) => {
+  // Make sure a socket connection exist before emitting socket event
+  if(!socket) socket = socketConnection();
   socket.emit("new-message", {
     message: data.message,
     recipientId: body.recipientId,
@@ -93,9 +103,9 @@ const sendMessage = (data, body) => {
 
 // message format to send: {recipientId, text, conversationId}
 // conversationId will be set to null if its a brand new conversation
-export const postMessage = (body) => (dispatch) => {
+export const postMessage = (body) => async (dispatch) => {
   try {
-    const data = saveMessage(body);
+    const data = await saveMessage(body);
 
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
@@ -105,7 +115,7 @@ export const postMessage = (body) => (dispatch) => {
 
     sendMessage(data, body);
   } catch (error) {
-    console.error(error);
+    console.error(error.response.data.error || "Server Error" );
   }
 };
 
